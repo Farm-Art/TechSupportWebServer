@@ -2,7 +2,17 @@
     background-color: #074a91;
 }
 main {
+    color: white;
+    margin: 15%;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding: 40px;
+    padding-top: 10px;
+    background-color: #114277;
+}
 
+header {
+    box-shadow: 0 0 0 10 #074a91
 }
 
 footer {
@@ -13,4 +23,35 @@ body {
     background-color: #0b2b4d;
 }
 
-h1 { font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif; font-size: 24px; font-style: normal; font-variant: normal; font-weight: 700; line-height: 24px; } h3 { font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif; font-size: 14px; font-style: normal; font-variant: normal; font-weight: 700; line-height: 15.4px; } p { font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif; font-size: 14px; font-style: normal; font-variant: normal; font-weight: 400; line-height: 14px; } blockquote { font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif; font-size: 21px; font-style: normal; font-variant: normal; font-weight: 400; line-height: 30px; } pre { font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif; font-size: 13px; font-style: normal; font-variant: normal; font-weight: 400; line-height: 18.5714px; }
+h1 {
+    font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+    font-size: 24px; font-style: normal; font-variant: normal;
+    font-weight: 700; line-height: 24px;
+}
+h3 {
+    font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+    font-size: 14px; font-style: normal; font-variant: normal; font-weight: 700;
+    line-height: 15.4px;
+}
+
+p {
+    font-family: 'Marmelad', sans-serif;
+    font-size: 18px; font-style: normal; font-variant: normal; font-weight: 400;
+    line-height: 24px;
+    text-indent: 32px;
+}
+
+blockquote {
+    font-family: "Century Gothic",CenturyGothic, AppleGothic, sans-serif;
+    font-size: 21px; font-style: normal; font-variant: normal; font-weight: 400;
+    line-height: 30px; }
+
+pre {
+    font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+    font-size: 13px; font-style: normal; font-variant: normal; font-weight: 400;
+    line-height: 18.5714px;
+}
+
+a.link {
+   color: #4a9107;
+}
