@@ -54,4 +54,9 @@ pre {
 
 a.link {
    color: #4a9107;
+   font-family: "Marmelad";
+}
+
+ol {
+    font-family: "Marmelad";
 }
