@@ -12,7 +12,8 @@ def index():
 @app.route('/download/stencil')
 def download_stencil():
     return send_file('static/downloadable_content/ГОСТ 19.701-90v5.vssx',
-                     attachment_filename='ГОСТ 19.701-90v5.vssx')
+                     attachment_filename='ГОСТ 19.701-90v5.vssx',
+                     as_attachment=True)
 
 
 @app.route('/thanks')
