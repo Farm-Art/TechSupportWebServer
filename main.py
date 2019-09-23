@@ -16,6 +16,13 @@ def download_stencil():
                      as_attachment=True)
 
 
+@app.route('/download/fontandstencil')
+def download_font_and_stencil():
+    return send_file('static/downloadable_content/Visio.zip',
+                     attachment_filename='ГОСТ-пакет v6.zip',
+                     as_attachment=True)
+
+
 @app.route('/thanks')
 def thank():
     kwargs = {'title': 'СТП им. Арташеса - Главная'}
