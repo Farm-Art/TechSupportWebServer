@@ -14,12 +14,15 @@
   <link rel="stylesheet" href="https://use.typekit.net/oov2wcw.css">
   <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css?family=Comfortaa&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.10/styles/androidstudio.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.10/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
 </head>
 <body>
 <header>
     <nav class="navbar navbar-dark bg-dblue">
       <a class="navbar-brand" href="#">
-          <h1><img src="{{url_for('static',filename='icon.png')}}" width="64" height="64" class="d-inline-block align-center" alt="СТП им. Арташеса">&nbsp;Служба Тех.поддержки им. Арташеса™®</h1>
+          <h1><img src="{{url_for('static',filename='icon.png')}}" width="64" height="64" class="d-inline-block align-center" alt="СТП им. Арташеса">&nbsp;{{ project_name }} им. Арташеса™®</h1>
       </a>
       <p>Контактная информация: Telegram Handle: @FarmArt, Discord Handle: @FarmArt#1531</p>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,6 +38,9 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="#visiomanual">Инструкция по работе с ГОСТ-пакетом</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/blog/info">Блог о программировании</a>
           </li>
         </ul>
       </div>

@@ -5,7 +5,8 @@ from dbmodels import *
 @app.route('/')
 @app.route('/index')
 def index():
-    kwargs = {'title': 'СТП им. Арташеса - Главная'}
+    kwargs = {'title': 'СТП им. Арташеса - Главная',
+              'project_name': 'Служба Тех.Поддержки'}
     return render_template('index.html', **kwargs)
 
 
@@ -25,8 +26,16 @@ def download_font_and_stencil():
 
 @app.route('/thanks')
 def thank():
-    kwargs = {'title': 'СТП им. Арташеса - Главная'}
+    kwargs = {'title': 'СТП им. Арташеса - Главная',
+              'project_name': 'Служба Тех.Поддержки'}
     return render_template('thank.html', **kwargs)
+
+
+@app.route('/blog/info')
+def bloginfo():
+    kwargs = {'title': 'Блог им. Арташеса - Главная',
+              'project_name': 'Блог о Программировании'}
+    return render_template('bloginfo.html', **kwargs)
 
 
 if __name__ == '__main__':
