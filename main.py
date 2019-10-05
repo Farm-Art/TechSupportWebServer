@@ -38,5 +38,23 @@ def bloginfo():
     return render_template('bloginfo.html', **kwargs)
 
 
+@app.route('/lectures')
+def lectures():
+    kwargs = {'title': 'Лекции им. Арташеса - Главная',
+              'project_name': 'Лекции'}
+    return render_template('lectures.html', **kwargs)
+
+
+@app.route('/download/lectures/<string:subject>')
+def download_lecture(subject):
+    address = filename = None
+    if subject == 'informatics':
+        filename = "Лекции Информатика.docx"
+        address = 'static/downloadable_content/Lectures/' + filename
+    if address and filename:
+        return send_file(address, attachment_filename=filename,
+                         as_attachment=True)
+
+
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=8080)
