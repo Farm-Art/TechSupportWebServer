@@ -21,7 +21,7 @@
 <body>
 <header>
     <nav class="navbar navbar-dark bg-dblue">
-      <a class="navbar-brand" href="#">
+      <a class="navbar-brand" href="{{ url_for('index') }}">
           <h1><img src="{{url_for('static',filename='icon.png')}}" width="64" height="64" class="d-inline-block align-center" alt="СТП им. Арташеса">&nbsp;{{ project_name }} им. Арташеса™®</h1>
       </a>
       <p>Контактная информация: Telegram Handle: @FarmArt, Discord Handle: @FarmArt#1531</p>
@@ -31,13 +31,13 @@
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item">
-            <a class="nav-link" href="#info"><s>О нас</s> Обо мне</a>
+            <a class="nav-link" href="{{ url_for('index') }}#info"><s>О нас</s> Обо мне</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#stencil">Графический пакет Visio</a>
+            <a class="nav-link" href="{{ url_for('index') }}#stencil">Графический пакет Visio</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#visiomanual">Инструкция по работе с ГОСТ-пакетом</a>
+            <a class="nav-link" href="{{ url_for('index') }}#visiomanual">Инструкция по работе с ГОСТ-пакетом</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="/lectures">Лекции по разным предметам</a>
