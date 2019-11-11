@@ -48,10 +48,11 @@ def lectures():
 @app.route('/download/lectures/<string:subject>')
 def download_lecture(subject):
     address = filename = None
-    if subject == 'informatics':
-        filename = "Лекции Информатика.docx"
+    subjects = {'informatics': 'Лекции Информатика.docx',
+                'programmingbasics': 'ОП Лекции.zip'}
+    filename = subjects[subject]
+    if filename:
         address = 'static/downloadable_content/Lectures/' + filename
-    if address and filename:
         return send_file(address, attachment_filename=filename,
                          as_attachment=True)
 
