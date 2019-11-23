@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
 <section class="odd">
+  <h1>Статьи:</h1>
+  <ul>
+    <li><a class="link" href="{{ url_for('cppbasics') }}">Основы С++ (первая статья из цикла)</a></li>
+  </ul>
+</section>
+<section class="even">
   <h1>О чём сий блог?</h1>
   <p>
     Этот блог посвящён программированию, в частности - моему опыту программирования.
@@ -10,7 +16,7 @@
     моего замысла, использованных принципов и т.д.
   </p>
 </section>
-<section class="even">
+<section class="odd">
   <h1>А зачем здесь ещё и <i>б л о г?</i></h1>
   <p>
     Преимущественно затем, что <s>мне так захотелось</s> написание блога с публикацией
@@ -23,7 +29,7 @@
     несущее практического смысла задание, либо изобретают велосипед).
   </p>
 </section>
-<section class="odd">
+<section class="even">
   <h1>Пример вставки с кодом</h1>
   <pre><code class="python">class Human:
     def __init__(self, name):

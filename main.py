@@ -38,6 +38,13 @@ def bloginfo():
     return render_template('bloginfo.html', **kwargs)
 
 
+@app.route('/blog/CPPbasics')
+def cppbasics():
+    kwargs = {'title': 'Блог им. Арташеса - Основы С++',
+              'project_name': 'Блог о Программировании'}
+    return render_template('cppbasics.html', **kwargs)
+
+
 @app.route('/lectures')
 def lectures():
     kwargs = {'title': 'Лекции им. Арташеса - Главная',
