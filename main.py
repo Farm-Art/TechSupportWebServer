@@ -38,11 +38,18 @@ def bloginfo():
     return render_template('bloginfo.html', **kwargs)
 
 
-@app.route('/blog/CPPbasics')
+@app.route('/blog/cppbasics')
 def cppbasics():
     kwargs = {'title': 'Блог им. Арташеса - Основы С++',
               'project_name': 'Блог о Программировании'}
     return render_template('cppbasics.html', **kwargs)
+
+
+@app.route('/blog/cppfuncsptrs')
+def cppfuncsptrs():
+    kwargs = {'title': 'Блог им. Арташеса - Функции и указатели в С++',
+              'project_name': 'Блог о Программировании'}
+    return render_template('cppfuncsptrs.html', **kwargs)
 
 
 @app.route('/lectures')
