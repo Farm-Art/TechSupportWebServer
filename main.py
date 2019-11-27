@@ -52,6 +52,13 @@ def cppfuncsptrs():
     return render_template('cppfuncsptrs.html', **kwargs)
 
 
+@app.route('/blog/cppstreamsfiles')
+def cppstreamsfiles():
+    kwargs = {'title': 'Блог им. Арташеса - Файлы и потоки в С++',
+              'project_name': 'Блог о Программировании'}
+    return render_template('cppstreamsfiles.html', **kwargs)
+
+
 @app.route('/lectures')
 def lectures():
     kwargs = {'title': 'Лекции им. Арташеса - Главная',
