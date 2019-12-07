@@ -358,7 +358,6 @@ struct Array {
 
     ~Array() {
         delete this->nums;
-        delete this;
     }
 };
   </code></pre>
@@ -397,7 +396,6 @@ cout << a.val << " " << ptr->val << endl;
     while (!this->empty()) {
         this->pop_front();
     }
-    delete this;
 }
   </code></pre>
   <p>
@@ -640,6 +638,32 @@ type pop_front() {
 }
   </code></pre>
   <p>
+    Ну и в заключение работы над списком запилим ему бонусный метод,
+    итератор, принимающий функцию-callback. Что это вообще?
+    Итератор - это такая штукенция, которая позволяет по очереди
+    поработать с каждым элементом какого-либо контейнера. Callback - это
+    функция, которая передаётся в функцию в качестве аргумента и уже
+    затем вызывается внутри этой функции. В нашем случае, итератор - это
+    функция, которая получит callback функцию и применит её по очереди к каждому
+    элементу списка. Проходиться по списку мы уже умеем, не раз это делали,
+    теперь просто добавим к этому callback:
+  </p>
+  <pre><code class="cpp">
+// Обратите внимание на формат, в котором мы записали аргумент -
+// сначала возвращаемый тип, затем в скобках звёздочка и название функции,
+// затем принимаемые аргументы.
+void iter(void (*operation)(ForwardListItem&lt;type>*)) {
+    for (auto curr = this->head(); curr != nullptr; curr = curr->next) {
+        operation(curr);
+    }
+}
+  </code></pre>
+  <p>
+    В примере в конце статьи можно посмотреть, как это всё работает. Там
+    будет создана функция print, которую мы затем передадим в качестве аргумента
+    для вывода на экран всего списка.
+  </p>
+  <p>
     На этом заканчивается односвязный список. Теперь напишем обёртки,
     реализующие стек и очередь.
   </p>
@@ -687,7 +711,6 @@ public:
 
     ~Stack() {
         delete this->list;
-        delete this;
     }
 };
   </code></pre>
@@ -848,6 +871,12 @@ struct ForwardList {
         return val;
     }
 
+    void iter(void (*operation)(ForwardListItem&lt;type>*)) {
+        for (auto curr = this->head(); curr != nullptr; curr = curr->next) {
+            operation(curr);
+        }
+    }
+
     void recount() {
         this->size = 0;
         for (auto curr = this->head(); curr != nullptr; curr = curr->next) {
@@ -863,7 +892,6 @@ struct ForwardList {
         while (!this->empty()) {
             this->pop_front();
         }
-        delete this;
     }
 };
 
@@ -947,7 +975,6 @@ public:
 
     ~Stack() {
         delete this->list;
-        delete this;
     }
 };
 
@@ -984,7 +1011,117 @@ public:
     bool empty() {
         return this->list->empty();
     }
+
+    ~Queue() {
+        delete this->list;
+    }
 };
+  </code></pre>
+  <p>
+    Представим, что всё это лежит в файле mylist.hpp и напишем код, который
+    продемонстрирует все возможности сего монстра.
+  </p>
+  <pre><code class="cpp">
+  #include &lt;iostream>
+#include "mylist.hpp"
+
+using namespace std;
+
+template &lt;typename type>
+void print(ForwardListItem&lt;type> *item) {
+    cout &lt;&lt; item->value &lt;&lt; endl;
+}
+
+struct Book {
+    string title;
+    string author;
+
+    Book() = default;
+
+    Book(string &title, string &author) {
+        this->title = title;
+        this->author = author;
+    }
+
+    friend ostream& operator&lt;&lt; (ostream &out, const Book& self) {
+        out &lt;&lt; '"' &lt;&lt; self.title &lt;&lt; "\", a book by " &lt;&lt; self.author;
+        return out;  // Возвращаем поток, чтобы позволить комбинировать &lt;&lt; выводы &lt;&lt; вот &lt;&lt; так
+    }
+};
+
+int main() {
+    // Создание списка на основе встроенного типа
+    cout &lt;&lt; "Showing list" &lt;&lt; endl;
+    ForwardList&lt;int> *list = new ForwardList&lt;int>;
+    for (int i=0; i &lt; 10; i++) {
+        int n = rand() % 200 - 100;
+        cout &lt;&lt; "Adding " &lt;&lt; n;
+        if (i % 2) {
+            // Добавление в начало
+            list->push_front(n);
+            cout &lt;&lt; " to front" &lt;&lt; endl;
+        } else {
+            // Добавление в конец
+            list->push_back(n);
+            cout &lt;&lt; " to back" &lt;&lt; endl;
+        }
+    }
+    cout &lt;&lt; "Peeked at " &lt;&lt; list->front() &lt;&lt; " in front and " &lt;&lt; list->back() &lt;&lt; " in the back" &lt;&lt; endl;
+    // Итерация по callback функции
+    cout &lt;&lt; "Using callback to print list" &lt;&lt; endl;
+    cout &lt;&lt; "----------------------------" &lt;&lt; endl;
+    list->iter(print);
+    cout &lt;&lt; "----------------------------" &lt;&lt; endl;
+    for (int i=0; i &lt; 5; i++) {
+        // Удаление с начала
+        cout &lt;&lt; "Popped " &lt;&lt; list->pop_front() &lt;&lt; " from front" &lt;&lt; endl;
+        // Удаление с конца
+        cout &lt;&lt; "Popped " &lt;&lt; list->pop_back() &lt;&lt; " from back" &lt;&lt; endl;
+    }
+    delete list;
+
+    string titles[] = {"War and Peace", "Art of War", "Everything is f*cked: A book about Hope",
+                       "The Subtle Art of not Giving a F*ck", "Food Fight Club"};
+    string authors[] = {"Leo Tolstoy", "Sun Tzu", "Mark Manson", "Mark Manson", "Jamie Oliver"};
+
+    cout &lt;&lt; "Showing stack" &lt;&lt; endl;
+    // Стек из структур
+    Stack&lt;Book> *stack = new Stack&lt;Book>();
+    for (int i=0; i &lt; 5; i++) {
+        // Добавление в стек
+        stack->push(Book(titles[i], authors[i]));
+        // Просмотр элемента на верхушке стека
+        cout &lt;&lt; "Added " &lt;&lt; stack->peek() &lt;&lt; " to stack" &lt;&lt; endl;
+    }
+    // Проверка на пустоту
+    while (!stack->empty()) {
+        // Извлечение из стека
+        cout &lt;&lt; "Popped " &lt;&lt; stack->pop() &lt;&lt; " from stack" &lt;&lt; endl;
+    }
+    delete stack;
+
+    cout &lt;&lt; "Showing queue" &lt;&lt; endl;
+    // Создание очереди
+    Queue&lt;string> *queue = new Queue&lt;string>();
+    for (int i=0; i &lt; 5; i++) {
+        string a;
+        cout &lt;&lt; "Enter name to add to queue:" &lt;&lt; endl;
+        cin >> a;
+        // Добавление в очередь
+        queue->push(a);
+    }
+    // Пока очередь не опустеет
+    while (!queue->empty()) {
+        // Извлечение элемента
+        cout &lt;&lt; queue->pop() &lt;&lt; " gets their turn!" &lt;&lt; endl;
+        if (!queue->empty()) {
+            // Если очередь не пуста, смотрим на следующий элемент, но не извлекаем его
+            cout &lt;&lt; queue->peek() &lt;&lt; " will be next." &lt;&lt; endl;
+        }
+    }
+    delete queue;
+    cout &lt;&lt; "We're done now!" &lt;&lt; endl;
+}
   </code></pre>
   <p>
     Двусвязный список, двусторонную очередь и циклические версии всего этого,
