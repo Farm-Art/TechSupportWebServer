@@ -59,6 +59,13 @@ def cppstreamsfiles():
     return render_template('cppstreamsfiles.html', **kwargs)
 
 
+@app.route('/blog/cppstructslists')
+def cppstructslists():
+    kwargs = {'title': 'Блог им. Арташеса - Структуры и списки в С++',
+              'project_name': 'Работаем за Бобра since сентябрь 2019'}
+    return render_template('cppstructslists.html', **kwargs)
+
+
 @app.route('/lectures')
 def lectures():
     kwargs = {'title': 'Лекции им. Арташеса - Главная',

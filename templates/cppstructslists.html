@@ -1,4 +1,4 @@
-{% exentds "base.html" %}
+{% extends "base.html" %}
 {% block content %}
 <section class="odd">
   <h1>Структуры и списки</h1>
@@ -108,7 +108,7 @@ Dog bobik = {"Лабрабдор",
     повлияет на код:
   </p>
   <pre><code class="cpp">
-  struct Dog {
+struct Dog {
     string breed;
     string color;
     int age = 0;
@@ -131,7 +131,7 @@ bobik.bark();
     Если у вас стоит правильная IDE, то она точно вам сообщит о том,
     что методы bark и growl можно без потерь сделать статичными. Что это значит?
     Статический метод - это метод, который можно вызвать непосредственно у самого
-    класса, без создания экземпляра: Dog.bark(); Статическими можно (и нужно)
+    класса, без создания экземпляра: Dog::bark(); Статическими можно (и нужно)
     объявлять только те методы, которые не имеют привязки к конкретному
     экземпляру класса. Вот если бы у каждой собаки был свой звук лая,
     который назначается в соответствующее поле, мы бы уже не имели права
@@ -278,7 +278,6 @@ struct ForwardListItem;
 template &lt;typename type>
 struct ForwardList {
     ForwardListItem&lt;type> *root = nullptr;
-    ForwardListItem&lt;type> *end = nullptr;
     int size = 0;
 
     ForwardListItem&lt;type> *head();
@@ -294,16 +293,18 @@ struct ForwardList {
     type pop_front();
     type pop_back();
 
-    int count();
+    void recount();
     bool empty();
 };
 
 template &lt;typename type>
 struct ForwardListItem {
     type value;
-    ForwardListItem&lt;type> *next;
-    ForwardList&lt;type> *root;
+    ForwardListItem&lt;type> *next = nullptr;
+    ForwardList&lt;type> *root = nullptr;
 
+    ForwardListItem&lt;type> *head();
+    ForwardListItem&lt;type> *tail();
     void insert(ForwardListItem&lt;type> *item);
     void remove();
 };
@@ -330,5 +331,665 @@ struct ForwardListItem {
   <pre><code class="cpp">
 auto item = new ListItem(10);
   </code></pre>
+  <p>
+    Если попробовать вызвать класс, как функцию (что мы и видим на примере), то
+    программа попытается вызвать конструктор класса - функцию, которая создаёт
+    новый экземпляр класса и возвращает его. По умолчанию такой функции нет,
+    и компилятор любезно вам это проорёт, но её можно объявить, как метод класса:
+  </p>
+  <pre><code class="cpp">
+struct CustomClass {
+    int var;
+
+    CustomClass(int value) {
+        this->var = value;
+    }
+};
+  </code></pre>
+  <p>
+    В теле класса мы просто объявляем метод, название которого совпадает с названием класса.
+    Возвращаемый тип мы <b>не указываем</b>. Аналогично создаются и деструкторы, то есть методы,
+    которые вызываются при попытке удалить экземпляр класса через delete:
+  </p>
+  <pre><code class="cpp">
+struct Array {
+    int *nums = new int[10];
+
+    ~Array() {
+        delete this->nums;
+        delete this;
+    }
+};
+  </code></pre>
+  <p>
+    Возникает другой вопрос: кто такой this и почему от него идёт стрелочка? this - это ключевое слово,
+    которое хранит в себе указатель на экземпляр класса, у которого вызывается метод. Иными словами,
+    почти у каждого метода класса есть скрытый аргумент this, который хранит указатель на конкретный
+    объект класса, с которым этот метод должен взаимодействовать. Это даёт 100% гарантию, что значение
+    мы меняем только у одного конкретного объекта (подробнее о том, зачем это вообще надо, мы поговорим
+    сильно позже).<br>
+    Что же касается стрелки - она играет ту же роль, что и точка, но у указателей. Следующий код должен
+    достаточно наглядно это продемонстрировать:
+  </p>
+  <pre><code class="cpp">
+struct Number {
+    int val;
+};
+
+Number a = {10};
+Number *ptr = &amp;a;
+cout << a.val << " " << ptr->val << endl;
+  </code></pre>
+  <p>
+    Так как классы, в основном, работают с указателями, пользоваться такой стрелочкой
+    гораздо удобнее, чем вручную разименовывать указатели и пытаться достать их содержимое.
+    Согласитесь, this->next->next удобнее монстроподобных конструкций вида *(*this.next).next (которые
+    ещё и не будут компилироваться).
+  </p>
+  <p>
+    Вернёмся к спискам, пока не поздно. В теории, нам достаточно реализовать только деструктор
+    для списка и конструктор для элемента списка. Деструктор списка должен удалить
+    каждый элемент списка:
+  </p>
+  <pre><code class="cpp">
+~ForwardList() {
+    while (!this->empty()) {
+        this->pop_front();
+    }
+    delete this;
+}
+  </code></pre>
+  <p>
+    Конструктор элемента списка будет также примитивен, но в итоге крайне удобен:
+  </p>
+  <pre><code class="cpp">
+explicit ForwardListItem(type value) {
+    this->value = value;
+}
+  </code></pre>
+  <p>
+    Так, а что это за explicit? Explicit - ключевое слово, введённое в С++
+    чтобы отличать конструкторы с одним обязательным аргументом от С-подобного
+    приведения типов. Начиная со стандарта С++11 у слова появилось больше
+    применений, которые, если верить Хабру, "должны навести порядок в зоопарке
+    способов инициализации объектов, доставшемся C++ в наследство от языка C".
+    Иными словами, <i>так просто лучше, подробности когда-нибудь потом изучим</i>.
+  </p>
+  <p>
+    Ну, с мелочами и основами разобрались, теперь можно приступить к работе и над геморройными элементами.
+  </p>
+</section>
+<section class="odd">
+  <h2>Вставка и удаление в список</h2>
+  <p>
+    Чтобы вставить элемент в середину или конец списка, нужно изменить всего три указателя. Предположим,
+    что у нас есть элементы A и С, уже находящиеся в списке, и элемент B, который мы хотим вставить между ними.
+    В данный момент A->next == C. Чтобы сохранить связь с элементом С, его адрес мы запишем в элемент B:
+    B->next = A->next. Чтобы B имел конкретное положение в списке, а не валялся в астральных уголках памяти
+    показывая пальцем на С, нужно изменить параметр next у А: A->next = B. Ну и было бы неплохо рассказать B о зачинщике
+    этого списка: B->root = A->root. Реализуем это в качестве метода insert у элемента списка, чтобы A был равен
+    this, а B - переданному аргументу.
+  </p>
+  <pre><code class="cpp">
+void insert(ForwardListItem&lt;type> *item) {
+    // Привязываем элемент к списку
+    item->root = this->root;
+    // Вставляем его между этим и следующим
+    item->next = this->next;
+    this->next = item;
+    // Увеличиваем длину в менеджере
+    this->root->size++;
+}
+  </code></pre>
+  <p>
+    Просто и элегантно. Если элемент A будет последним, то его параметр next будет указывать на nullptr,
+    что мы успешно скопируем в B без каких-либо ошибок компиляции или косяков в рантайме.
+  </p>
+  <p>
+    Пришла очередь удаления элемента из списка. Было бы странно, если бы при вызове A->remove() удалялся не А,
+    а А->next. По сей причине придётся пожертвовать скоростью работы и идти от головы до элемента предшествующего
+    А (проблемы не будет в двусвязном списке, что ускорит работоспособность, но будет кушать ещё больше памяти.
+    Если мы хотим именно список, то лучше пожертвовать памятью ради скорости, но в случае стека или очереди
+    двусвязный список не даст никакого прироста скорости, только зохавает ещё больше ценной (нет) оперативы).
+    Алгоритм всё также прост. Есть элементы A, B и C, идущие подряд. При вызове B->remove() A станет указывать
+    на C и, собственно, на этом всё. Отдельно стоит проверить, является ли элемент списка первым - в таком случае
+    придётся залезть в сам список и изменить указатель root на next от элемента.
+  </p>
+  <pre><code class="cpp">
+void remove() {
+    auto curr = this->head();
+    if (curr == this) {
+        // Если удаляем первый элемент, то нужно
+        // перенаправить корень менеджера на следующий,
+        // будь то реальный элемент или nullptr
+        this->root->root = this->next;
+    } else {
+        // Ищем предыдущий элемент от головы
+        while (curr->next != this) {
+            curr = curr->next;
+        }
+        // Избавляемся от ссылки на себя
+        curr->next = this->next;
+    }
+    // Уменьшаем длину в менеджере
+    this->root->size--;
+}
+  </code></pre>
+  <p>
+    Теперь можно реализовать и крайне тяжёлые в исполнении методы head и
+    tail:
+  </p>
+  <pre><code class="cpp">
+ForwardListItem&lt;type> *head() {
+    return this->root->head();
+}
+
+ForwardListItem&lt;type> *tail() {
+    auto curr = this;
+    while (curr->next != nullptr) {
+        curr = curr->next;
+    }
+    return curr;
+}
+  </code></pre>
+  <p>
+    Структура ForwardListItem готова, можно приступать к ForwardList.
+    Начнём с всё тех же head и tail:
+  </p>
+  <pre><code class="cpp">
+ForwardListItem&lt;type> *head() {
+        return this->root;
+    }
+
+ForwardListItem&lt;type> *tail() {
+    // Если в списке нет элементов, вернём nullptr
+    if (this->root == nullptr) {
+        return nullptr;
+    }
+    return this->root->tail();
+}
+  </code></pre>
+  <p>
+    Удобства ради, добавим также методы front и back, которые
+    вернут значения из head и tail:
+  </p>
+  <pre><code class="cpp">
+type front() {
+    return this->head()->value;
+}
+
+type back() {
+    return this->tail()->value;
+}
+  </code></pre>
+  <p>
+    Как вы уже заметили в tail, нам почти не придётся придумывать код для
+    самого списка, мы будем совершать примитивные (по большей части) операции
+    для получения нужного элемента и затем совершать манипуляции с его методами.
+    Теперь реализуем методы empty и recount (просто потому что они простые).
+  </p>
+  <pre><code class="cpp">
+void recount() {
+    this->size = 0;
+    for (auto curr = this->head(); curr != nullptr; curr = curr->next) {
+        this->size++;
+    }
+}
+
+bool empty() {
+    return !this->size;
+}
+  </code></pre>
+  <p>
+    Метод recount, на самом деле, нам особо сильно и не нужен, но лишним
+    не будет - например, он позволяет пересчитать размер списка при создании
+    его не на пустом месте, а на основании какого-то элемента, за которым
+    уже может тянуться хвост (написание такого конструктора доверю читателю).
+  </p>
+  <p>
+    Теперь займёмся вставкой элементов в начало и конец списка. Вставка в конец
+    - задача предельно простая, достаточно вызвать у tail() метод insert (если
+    список не пуст, конечно же):
+  </p>
+  <pre><code class="cpp">
+void push_back(ForwardListItem&lt;type> *item) {
+    if (!this->empty()) {
+        // Если список не пуст, можно просто insert-нуть после хвоста
+        this->tail()->insert(item);
+    } else {
+        // Если же список пуст, засунем в начало, потому что
+        // там эта ветка уже есть, нет смысла заново это писать.
+        this->push_front(item);
+    }
+}
+
+void push_back(type value) {
+    // Клон для удобства
+    auto item = new ForwardListItem(value);
+    this->push_back(item);
+}
+  </code></pre>
+  <p>
+    По похожей схеме осуществим вставку в начало:
+  </p>
+  <pre><code class="cpp">
+void push_front(ForwardListItem&lt;type> *item) {
+    // Привязываем элемент к списку и назначаем бывший головной элемент в слот next
+    item->root = this;
+    item->next = this->root;
+    // Меняем головной элемент в менеджере
+    this->root = item;
+    // Меняем размер
+    this->size++;
+}
+
+void push_front(type value) {
+    // Клон для удобства, создаёт элемент и вызывает существующий метод
+    auto item = new ForwardListItem(value);
+    this->push_front(item);
+}
+  </code></pre>
+</section>
+<section class="even">
+  <h2>Удаление элементов</h2>
+  <p>
+    Удалять элементы c конца сложнее, чем добавлять в конец, преимущественно
+    из-за необходимости оптимизировать этот процесс.
+  </p>
+  <pre><code class="cpp">
+type pop_back() {
+    type val;
+    if (this->size == 1) {
+        // Если в списке всего один элемент, не ищем предыдущий,
+        // сразу назначаем root = nullptr
+        val = this->root->value;
+        delete this->root;
+        this->root = nullptr;
+    } else {
+        // Иначе ищем предпоследний элемент и через него
+        // извлекаем и удаляем последний
+        auto curr = this->head();
+        while (curr->next->next != nullptr) {
+            curr = curr->next;
+        }
+        val = curr->next->value;
+        delete curr->next;
+        curr->next = nullptr;
+        // Технически, можно не заморачиваться и просто вызвать tail() и его remove(),
+        // но это негативно скажется на скорости работы. В двусвязном такой проблемы
+        // нет, там так и делайте.
+    }
+    // Уменьшаем размер, возвращаем значение
+    this->size--;
+    return val;
+}
+  </code></pre>
+  <p>
+    Ну, покодили сложные штуки и хватит, теперь будем добавлять в начало:
+  </p>
+  <pre><code class="cpp">
+type pop_front() {
+    // Временно сохраняем голову, удаляем её из списка,
+    // затем удаляем окончательно и возвращаем сохранённое значение
+    auto item = this->root;
+    item->remove();
+    type val = item->value;
+    delete item;
+    return val;
+}
+  </code></pre>
+  <p>
+    На этом заканчивается односвязный список. Теперь напишем обёртки,
+    реализующие стек и очередь.
+  </p>
+</section>
+<section class="odd">
+  <h2>Стек</h2>
+  <p>
+    Стек реализуется без лишних извращений: храним внутри указатель
+    на односвязный список, создаём методы, которые вызовут соответствующие методы
+    у хранимого списка и сидим довольные. Нам нужна проверка на пустоту,
+    удаление с начала, добавление в начало (не важно, в какой конец мы будем
+    добавлять элементы, главное, чтобы они добавлялись и удалялись с одной и той
+    же стороны, а удалять и добавлять головные элементы гораздо проще и быстрее,
+    чем хвостовые).
+  </p>
+  <pre><code class="cpp">
+template &lt;typename type>
+struct Stack {
+private:
+    // Объявляем список как приватный член класса,
+    // иначе вся эта мишура со стеком не будет иметь никакого
+    // смысла
+    ForwardList&lt;type> *list = nullptr;
+
+public:
+    Stack() {
+        this->list = new ForwardList&lt;type>;
+    }
+
+    void push(type value) {
+        this->list->push_front(value);
+    }
+
+    type pop() {
+        return this->list->pop_front();
+    }
+
+    type peek() {
+        return this->list->front();
+    }
+
+    bool empty() {
+        return this->list->empty();
+    }
+
+    ~Stack() {
+        delete this->list;
+        delete this;
+    }
+};
+  </code></pre>
+  <p>
+    Искренне надеюсь, что пояснять что-то здесь не нужно.
+  </p>
+  <h2>Очередь</h2>
+  <p>
+    С очередью немного сложнее - добавляем мы всё в один конец, а читаем
+    с другого. Здесь можно ради оптимизации завести ещё один указатель,
+    который будет тыкать на последний элемент. Вставлять новые элементы будем
+    в конец, удалять из головы (удаление из головы происходит гораздо быстрее,
+    чем из любого другого места, тем более из конца; вставка в конец занимает
+    столько же, сколько и в любое другое место).
+  </p>
+  <pre><code class="cpp">
+template &lt;typename type>
+struct Queue {
+private:
+    ForwardList&lt;type> *list = nullptr;
+    // Сохраняем указатель на последний элемент, чтобы
+    // ускорить добавление элементов
+    ForwardListItem&lt;type> *end = nullptr;
+public:
+    Queue() {
+        this->list = new ForwardList&lt;type>;
+    }
+
+    void push(type value) {
+        auto item = new ForwardListItem(value);
+        if (this->empty()) {
+            this->list->push_front(item);
+        } else {
+            this->end->insert(item);
+        }
+        this->end = item;
+    }
+
+    type pop() {
+        return this->list->pop_front();
+    }
+
+    type peek() {
+        return this->list->front();
+    }
+
+    bool empty() {
+        return this->list->empty();
+    }
+};
+  </code></pre>
+  <p>
+    Как-то так. В конце-концов должен получиться такой код:
+  </p>
+  <pre><code class="cpp">
+template &lt;typename type>
+struct ForwardList;
+template &lt;typename type>
+struct ForwardListItem;
+template &lt;typename type>
+struct Stack;
+template &lt;typename type>
+struct Queue;
+
+template &lt;typename type>
+struct ForwardList {
+    ForwardListItem&lt;type> *root = nullptr;
+    int size = 0;
+
+    ForwardListItem&lt;type> *head() {
+        return this->root;
+    }
+
+    ForwardListItem&lt;type> *tail() {
+        // Если в списке нет элементов, вернём nullptr
+        if (this->root == nullptr) {
+            return nullptr;
+        }
+        return this->root->tail();
+    }
+
+    // front и back - аналоги head и tail, но дающие значение.
+    type front() {
+        return this->head()->value;
+    }
+
+    type back() {
+        return this->tail()->value;
+    }
+
+    void push_front(ForwardListItem&lt;type> *item) {
+        // Привязываем элемент к списку и назначаем бывший головной элемент в слот next
+        item->root = this;
+        item->next = this->root;
+        // Меняем головной элемент в менеджере
+        this->root = item;
+        // Меняем размер
+        this->size++;
+    }
+
+    void push_front(type value) {
+        // Клон для удобства, создаёт элемент и вызывает существующий метод
+        auto item = new ForwardListItem(value);
+        this->push_front(item);
+    }
+
+    void push_back(ForwardListItem&lt;type> *item) {
+        if (!this->empty()) {
+            // Если список не пуст, можно просто insert-нуть после хвоста
+            this->tail()->insert(item);
+        } else {
+            // Если же список пуст, засунем в начало, потому что
+            // там эта ветка уже есть, нет смысла заново это писать.
+            this->push_front(item);
+        }
+    }
+
+    void push_back(type value) {
+        // Клон для удобства
+        auto item = new ForwardListItem(value);
+        this->push_back(item);
+    }
+
+    type pop_back() {
+        type val;
+        if (this->size == 1) {
+            // Если в списке всего один элемент, не ищем предыдущий,
+            // сразу назначаем root = nullptr
+            val = this->root->value;
+            delete this->root;
+            this->root = nullptr;
+        } else {
+            // Иначе ищем предпоследний элемент и через него
+            // извлекаем и удаляем последний
+            auto curr = this->head();
+            while (curr->next->next != nullptr) {
+                curr = curr->next;
+            }
+            val = curr->next->value;
+            delete curr->next;
+            curr->next = nullptr;
+            // Технически, можно не заморачиваться и просто вызвать tail() и его remove(),
+            // но это негативно скажется на скорости работы. В двусвязном такой проблемы
+            // нет, там так и делайте.
+        }
+        // Уменьшаем размер, возвращаем значение
+        this->size--;
+        return val;
+    }
+
+    type pop_front() {
+        // Временно сохраняем голову, удаляем её из списка,
+        // затем удаляем окончательно и возвращаем сохранённое значение
+        auto item = this->root;
+        item->remove();
+        type val = item->value;
+        delete item;
+        return val;
+    }
+
+    void recount() {
+        this->size = 0;
+        for (auto curr = this->head(); curr != nullptr; curr = curr->next) {
+            this->size++;
+        }
+    }
+
+    bool empty() {
+        return !this->size;
+    }
+
+    ~ForwardList() {
+        while (!this->empty()) {
+            this->pop_front();
+        }
+        delete this;
+    }
+};
+
+template &lt;typename type>
+struct ForwardListItem {
+    type value;
+    ForwardListItem&lt;type> *next = nullptr;
+    ForwardList&lt;type> *root = nullptr;
+
+    explicit ForwardListItem(type value) {
+        this->value = value;
+    }
+
+    ForwardListItem&lt;type> *head() {
+        return this->root->head();
+    }
+
+    ForwardListItem&lt;type> *tail() {
+        auto curr = this;
+        while (curr->next != nullptr) {
+            curr = curr->next;
+        }
+        return curr;
+    }
+
+    void insert(ForwardListItem&lt;type> *item) {
+        // Привязываем элемент к списку
+        item->root = this->root;
+        // Вставляем его между этим и следующим
+        item->next = this->next;
+        this->next = item;
+        // Увеличиваем длину в менеджере
+        this->root->size++;
+    }
+
+    void remove() {
+        auto curr = this->head();
+        if (curr == this) {
+            // Если удаляем первый элемент, то нужно
+            // перенаправить корень менеджера на следующий,
+            // будь то реальный элемент или nullptr
+            this->root->root = this->next;
+        } else {
+            // Ищем предыдущий элемент от головы
+            while (curr->next != this) {
+                curr = curr->next;
+            }
+            // Избавляемся от ссылки на себя
+            curr->next = this->next;
+        }
+        // Уменьшаем длину в менеджере
+        this->root->size--;
+    }
+};
+
+template &lt;typename type>
+struct Stack {
+private:
+    ForwardList&lt;type> *list = nullptr;
+
+public:
+    Stack() {
+        this->list = new ForwardList&lt;type>;
+    }
+
+    void push(type value) {
+        this->list->push_front(value);
+    }
+
+    type pop() {
+        return this->list->pop_front();
+    }
+
+    type peek() {
+        return this->list->front();
+    }
+
+    bool empty() {
+        return this->list->empty();
+    }
+
+    ~Stack() {
+        delete this->list;
+        delete this;
+    }
+};
+
+template &lt;typename type>
+struct Queue {
+private:
+    ForwardList&lt;type> *list = nullptr;
+    // Сохраняем указатель на последний элемент, чтобы
+    // ускорить добавление элементов
+    ForwardListItem&lt;type> *end = nullptr;
+public:
+    Queue() {
+        this->list = new ForwardList&lt;type>;
+    }
+
+    void push(type value) {
+        auto item = new ForwardListItem(value);
+        if (this->empty()) {
+            this->list->push_front(item);
+        } else {
+            this->end->insert(item);
+        }
+        this->end = item;
+    }
+
+    type pop() {
+        return this->list->pop_front();
+    }
+
+    type peek() {
+        return this->list->front();
+    }
+
+    bool empty() {
+        return this->list->empty();
+    }
+};
+  </code></pre>
+  <p>
+    Двусвязный список, двусторонную очередь и циклические версии всего этого,
+    надеюсь, сможете сделать сами. Эта статья, в первую очередь, поясняет
+    принципы, на которых это основано и показывает пример +- грамотно составленного
+    кода.
+  </p>
 </section>
 {% endblock %}
