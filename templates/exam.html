@@ -297,4 +297,289 @@ int main() {
     могут подождать, пока я допишу минималистичные версии этих структур и выложу их сюда.
   </p>
 </section>
+<section class="even">
+  <h1>Пример с двусвязным списком и сортировкой/поиском по ID</h1>
+  <p>
+    Реализация иных критериев сортировки максимально примитивно отличается от текущей,
+    стек и очередь были освещены в статье про списки, принцип работы с ними в общем тот же.
+    Этот пример должен быть достаточно понятен, хотя я, честно говоря, уже не уверен даже в
+    его работоспособности, звиняйте.
+  </p>
+  <pre><code class="cpp">
+// ---header.hpp---
+#ifndef TEST_HEADER_HPP
+#define TEST_HEADER_HPP
+#include &lt;iostream>
+struct List;
+struct ListItem;
+struct Person;
+
+struct Person {
+    int id, age, salary;
+    char lname[20], fname[20];
+
+    friend std::ostream& operator<< (std::ostream &out, Person self) {
+        out << self.id << " ";
+        out << self.lname << " " << self.fname;
+        out << self.age << " "<< self.salary;
+        return out;
+    }
+
+    friend std::istream& operator>> (std::istream &in, Person self) {
+        in >> self.id >> self.lname >> self.fname >> self.age >> self.salary;
+        return in;
+    }
+};
+
+struct ListItem {
+    List *root = nullptr;
+    ListItem *next, *prev = nullptr;
+    Person value;
+
+    explicit ListItem(Person value) {
+        this->value = value;
+    }
+    void remove();
+};
+
+struct List {
+    ListItem *head = nullptr, *tail = nullptr;
+    int size = 0;
+
+    List() = default;
+
+    ~List() {
+        while (this->size) {
+            this->pop_back();
+        }
+    }
+
+    Person pop_back();
+    Person pop_front();
+    void push_back(ListItem *item);
+    void push_back(Person value);
+    void push_front(ListItem *item);
+    void push_front(Person value);
+};
+
+void search(List &list);
+void sort(List &list);
+
+void add_person(List &list);
+void remove_by_index(List &list);
+
+void dump_to_binary(List &list);
+void read_from_text(List &list);
+
+#endif
+
+  </code></pre>
+  <code><pre class="cpp">
+// ---source.cpp---
+#include "header.hpp"
+#include &lt;iostream>
+#include &lt;fstream>
+using namespace std;
+
+void ListItem::remove() {
+    // Remove element from list by connecting its prev to next
+    if (this->prev != nullptr) {
+        this->prev->next = this->next;
+    }
+    if (this->next != nullptr) {
+        this->next->prev = this->prev;
+    }
+    if (this->root != nullptr) {
+        this->root->size--;
+    }
+}
+
+void List::push_back(ListItem *item) {
+    if (!this->size) {
+        // If list is empty, initiate with item
+        this->head = item;
+        this->tail = item;
+        item->root = this;
+    } else {
+        item->root = this;  // Connect item to list
+        item->next = this->tail->next;  // Insert after tail
+        item->prev = this->tail->prev;
+        this->tail->next = item;
+        this->tail = item;  // Update tail pointer
+    }
+    this->size++;
+}
+
+void List::push_back(Person value) {
+    // Convenience function for end user
+    ListItem *item = new ListItem(value);
+    this->push_back(item);
+}
+
+void List::push_front(ListItem *item) {
+    if (!this->size) {
+        // If list is empty, initiate with item
+        this->push_back(item);
+    } else {
+        item->root = this; // Connect to list
+        item->next = this->head->next;  // Insert in front of head
+        item->prev = this->head->prev;
+        this->head = item;  // Update head pointer
+        this->size++;
+    }
+}
+
+void List::push_front(Person value) {
+    // Convenience function for end user
+    ListItem *item = new ListItem(value);
+    this->push_front(item);
+}
+
+Person List::pop_back() {
+    // Delete item from back and return its value
+    ListItem *item = this->tail;
+    this->tail = item->prev;
+    if (this->size) {
+        this->tail->next = nullptr;
+    }
+    this->size--;
+    Person value = item->value;
+    delete item;
+    return value;
+}
+
+Person List::pop_front() {
+    // Delete item from front and return its value
+    ListItem *item = this->head;
+    this->head = item->next;
+    if (this->size) {
+        this->head->prev = nullptr;
+    }
+    this->size--;
+    Person value = item->value;
+    delete item;
+    return value;
+}
+
+void add_person(List &list) {
+    cout << "Enter info in the following format:" << endl;
+    cout << "ID   Surname  Name  Age Salary" << endl;
+    cout << "7836 Vasilyev Pyotr 20 7500" << endl;
+    cout << "The surname and the name are limited to 20 characters; the rest are stored as integers." << endl;
+    Person new_person;
+    cin >> new_person;
+    cout << "Gathered the following data: " << new_person << endl;
+    list.push_back(new_person);
+    cout << "Added " << new_person.fname << " to list." << endl;
+}
+
+void remove_by_index(List &list) {
+    cout << "Currently, the list is as follows:" << endl;
+    if (list.size) {
+        int i = 1;
+        for (ListItem *item = list.head; item != nullptr; item = item->next) {
+            cout << i << ". " << item->value << endl;
+        }
+        cout << "Enter index of person to delete" << endl;
+        int index;
+        cin >> index;
+        while (index > 0 && index <= i) {
+            cout << "Index out of range, please enter a number between 1 and " << i << endl;
+            cin >> index;
+        }
+        index--;
+        i = 0;
+        for (ListItem *item = list.head; item != nullptr; item = item->next) {
+            if (i++ == index) {
+                item->remove();
+                cout << "Removed " << item->value.fname << endl;
+                break;
+            }
+        }
+    } else {
+        cout << "The list is empty." << endl;
+    }
+}
+
+void search(List &list) {
+    if (!list.size) {
+        cout << "List is empty" << endl;
+    } else {
+        cout << "Enter search key:" << endl;
+        cout << "- 'i' for id" << endl;
+        cout << "- 'l' for lastname" << endl;
+        cout << "- 'f' for firstname" << endl;
+        cout << "- 'a' for age" << endl;
+        cout << "- 's' for salary" << endl;
+        char key;
+        cin >> key;
+        switch (key) {
+            case 'i':
+                int id;
+                cout << "Enter id" << endl;
+                cin >> id;
+                for (ListItem *item = list.head; item != nullptr; item = item->next) {
+                    if (item->value.id == id) {
+                        cout << item->value << endl;
+                    }
+                }
+                break;
+            // Аналогично прописываются и другие кейсы, мне некогда их самому писать
+        }
+    }
+}
+
+void sort(List &list) {
+    if (!list.size) {
+        cout << "List is empty" << endl;
+    } else {
+        cout << "Enter sort key:" << endl;
+        cout << "- 'i' for id" << endl;
+        cout << "- 'l' for lastname" << endl;
+        cout << "- 'f' for firstname" << endl;
+        cout << "- 'a' for age" << endl;
+        cout << "- 's' for salary" << endl;
+        char key;
+        cin >> key;
+        switch(key) {
+            case 'i':
+                // Пузырьковая, мы не гордые
+                for (int i=0; i < list.size-1; i++) {
+                    for (ListItem *item = list.head; item->next != nullptr; item = item->next) {
+                        if (item->value.id > item->next->value.id) {
+                            swap(item->value, item->next->value);
+                        }
+                    }
+                }
+                break;
+            // Аналогично другие кейсы, для сравнения строк strcmp, вернёт 0, если равны,
+            // <0, если первая строка раньше по алфавиту, >0, если вторая строка раньше
+        }
+    }
+}
+
+void dump_to_binary(List &list) {
+    string path = "file.bin";
+    ofstream out(path, ios::out | ios::trunc | ios::binary);
+    for (ListItem *item = list.head; item != nullptr; item = item->next) {
+        out.write(reinterpret_cast&lt;char*>(&item->value), sizeof(Person));
+    }
+}
+
+void read_from_text(List &list) {
+    string path = "file.txt";
+    ifstream in(path, ios::in);
+    while (!in.eof()) {
+        Person man;
+        in >> man;
+        if (!in.fail()) {
+            list.push_back(man);
+        }
+    }
+}
+  </pre></code>
+  <p>
+    На сколько хватило /shrug
+  </p>
+</section>
 {% endblock %}
