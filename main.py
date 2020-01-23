@@ -24,6 +24,13 @@ def download_font_and_stencil():
                      as_attachment=True)
 
 
+@app.route('/exam')
+def exam_info():
+    kwargs = {'title': 'СТП им. Арташеса - Экзамен',
+              'project_name': 'Божья Помощь'}
+    return render_template('exam.html', **kwargs)
+
+
 @app.route('/thanks')
 def thank():
     kwargs = {'title': 'СТП им. Арташеса - Главная',
